@@ -1,29 +1,16 @@
 <script setup lang="ts">
+import BannerImage from '@/assets/banner.png';
 import BaseButton from '@/components/BaseButton.vue';
-import { StoryInterface } from '@/types';
-import { show } from '@/wayfinder/routes/stories';
-import { computed } from 'vue';
-
-const props = defineProps<{
-    story: StoryInterface;
-}>();
-
-const storyUrl = computed(() => show(props.story.slug).url);
-
-const branchingCount = computed(() => {
-    const n = props.story.chapters_count ?? 0;
-    return (n * 47 + 312).toLocaleString();
-});
+import { index as storiesIndex } from '@/wayfinder/routes/stories';
 </script>
 
 <template>
     <section class="hero-banner relative overflow-hidden bg-black">
-        <!-- Background: story banner or cover -->
+        <!-- Background image -->
         <div class="absolute inset-0">
             <img
-                v-if="story.banner || story.cover"
-                :src="story.banner || story.cover"
-                alt=""
+                :src="BannerImage"
+                alt="LoreSpinner"
                 class="h-full w-full object-cover object-[60%_center]"
             />
         </div>
@@ -36,27 +23,20 @@ const branchingCount = computed(() => {
 
         <div class="relative z-10 flex h-full items-center py-8 md:py-0">
             <div class="container">
-                <!-- Figma 5412:1228 ~556px stack: gap-[24px] title block ↔ CTA; title block gap-[15px]; meta gap-[10px] -->
                 <div class="flex max-w-[90%] flex-col gap-[24px] sm:max-w-xl md:max-w-[556px]">
                     <div class="flex flex-col gap-[15px]">
                         <h1 class="hero-title font-marcellus-sc uppercase text-white">
-                            {{ story.title }}
+                            Stories That Live<br />Through You
                         </h1>
 
                         <div class="flex flex-col gap-[10px] text-white">
-                            <p class="max-w-[411px] text-[18px] leading-[26px] text-white md:max-w-[556px]">
-                                {{ story.teaser }}
+                            <p class="max-w-[411px] text-[18px] leading-[26px] text-white/90 md:max-w-[556px]">
+                                Step into worlds where your choices shape the story. Read, choose, or write your own path
+                                through endlessly branching narratives.
                             </p>
-                            <div class="flex flex-col gap-0 leading-[26px]">
-                                <p v-if="story.creator" class="text-[14px] text-white">
-                                    Written by:
-                                    <span class="font-normal text-primary">{{ story.creator.full_name }}</span>
-                                </p>
-                                <p class="text-[14px] text-white">
-                                    <span class="text-primary">{{ branchingCount }}</span>
-                                    <span class="text-white"> Branching paths explored</span>
-                                </p>
-                            </div>
+                            <p class="text-[14px] text-primary font-medium leading-[26px]">
+                                Thousands of branching paths to explore
+                            </p>
                         </div>
                     </div>
 
@@ -64,7 +44,7 @@ const branchingCount = computed(() => {
                         <BaseButton
                             severity="primary"
                             type="internal-link"
-                            :href="storyUrl"
+                            :href="storiesIndex().url"
                             class="begin-btn h-[53px] min-w-[284px] px-8 text-base font-medium"
                         >
                             Begin Your Journey

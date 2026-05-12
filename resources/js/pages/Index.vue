@@ -1,214 +1,314 @@
 <script setup lang="ts">
-import BannerImage from '@/assets/banner.png';
-import BaseButton from '@/components/BaseButton.vue';
-import BaseContentTitle from '@/components/BaseContentTitle.vue';
-import BaseCreatorCard from '@/components/BaseCreatorCard.vue';
-import BaseLogo from '@/components/BaseLogo.vue';
-import BaseStoryCard from '@/components/BaseStoryCard.vue';
-import CommunitySignup from '@/components/CommunitySignup.vue';
-import ContinueStories from '@/components/ContinueStories.vue';
+import ExploreByMood from '@/components/ExploreByMood.vue';
 import FrequentlyAskedQuestion from '@/components/FrequentlyAskedQuestion.vue';
 import HeroBanner from '@/components/HeroBanner.vue';
+import HeroFallback from '@/components/HeroFallback.vue';
+import HomeWorldCard from '@/components/HomeWorldCard.vue';
+import StoryChangesWithYou from '@/components/StoryChangesWithYou.vue';
+import XenBanner from '@/components/XenBanner.vue';
+import ContinueStories from '@/components/ContinueStories.vue';
 import HomeLayout from '@/layouts/HomeLayout.vue';
-import { CreatorInterface, GameInterface, StoryInterface } from '@/types';
-import { show } from '@/wayfinder/routes/stories';
-import { router } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { GameInterface, StoryInterface } from '@/types';
+import { StoryStatusEnum } from '@/types/enum';
+import { index as storiesIndex, show as storyShow } from '@/wayfinder/routes/stories';
+import { Link } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = withDefaults(
     defineProps<{
         featuredStory?: StoryInterface | null;
         lastGame?: GameInterface | null;
-        creators?: CreatorInterface[];
         stories?: StoryInterface[];
     }>(),
     {
         featuredStory: null,
         lastGame: null,
-        creators: () => [],
         stories: () => [],
     },
 );
 
-const selectedStory = ref<StoryInterface | null>(null);
+const featuredStories = computed(() => props.stories.slice(0, 5));
+const newStories = computed(() => props.stories.slice(0, 3));
+const comingSoonStories = computed(() =>
+    props.stories.filter((s) => s.status?.value !== StoryStatusEnum.PUBLISHED).slice(0, 5),
+);
 
-const activeStory = computed(() => selectedStory.value ?? props.stories[0] ?? null);
+// Slider scroll helpers
+const featuredSliderEl = ref<HTMLElement | null>(null);
+const comingSoonSliderEl = ref<HTMLElement | null>(null);
+const newStoriesSliderEl = ref<HTMLElement | null>(null);
 
-const handleSelectStory = (story: StoryInterface) => {
-    if (window.innerWidth < 768) {
-        router.visit(show(story.slug).url);
-        return;
-    }
-    selectedStory.value = story;
-};
-
-// Smart scroll shadows — opacity scales with available scroll distance
-const scrollEl = ref<HTMLElement | null>(null);
-const topShadow = ref(0);
-const bottomShadow = ref(0);
-
-const updateShadows = () => {
-    const el = scrollEl.value;
+const scrollSlider = (el: HTMLElement | null, delta: number) => {
     if (!el) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    const maxScroll = scrollHeight - clientHeight;
-
-    if (maxScroll <= 0) {
-        // Nothing to scroll
-        topShadow.value = 0;
-        bottomShadow.value = 0;
-        return;
-    }
-
-    // Ramp up over the first/last 80px of scroll, capped at 1
-    topShadow.value = Math.min(scrollTop / 80, 1);
-    bottomShadow.value = Math.min((maxScroll - scrollTop) / 80, 1);
+    el.scrollBy({ left: delta, behavior: 'smooth' });
 };
-
-onMounted(() => {
-    const el = scrollEl.value;
-    if (el) {
-        el.addEventListener('scroll', updateShadows, { passive: true });
-        updateShadows();
-    }
-});
-
-onBeforeUnmount(() => {
-    scrollEl.value?.removeEventListener('scroll', updateShadows);
-});
 </script>
 
 <template>
     <HomeLayout>
-        <!-- Netflix-style Editor's Choice Banner -->
+        <!-- Hero -->
         <HeroBanner v-if="featuredStory" :story="featuredStory" />
+        <HeroFallback v-else />
 
-        <!-- Fallback: original banner when no featured story -->
-        <div
-            v-else
-            class="grid h-64 place-items-center bg-cover md:h-108"
-            :style="{ background: `url(${BannerImage}) center center no-repeat`, backgroundSize: 'cover' }"
-        >
-            <div class="container">
-                <div class="mx-auto flex w-56 flex-col items-center gap-3 md:mx-0 md:-ms-20 md:w-86 md:gap-4">
-                    <BaseLogo class="w-full" fill="white" />
-                    <h3 class="text-center font-gill-sans text-lg font-light text-primary md:text-2xl">Stories That Live Through You</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Continue Stories — only shown when user has an active game -->
+        <!-- Continue Stories -->
         <ContinueStories v-if="lastGame" :game="lastGame" />
 
-        <div class="py-10 md:py-18">
+        <!-- Story Changes With You -->
+        <StoryChangesWithYou />
+
+        <!-- Featured Worlds -->
+        <section class="py-14 md:py-[60px]">
             <div class="container">
-                <div class="flex flex-col gap-8 md:gap-12">
-                    <BaseContentTitle title="Stories">
-                        <template #description>
-                            Explore
-                            <span class="text-primary">original worlds</span>
-                            created by creators and unlocked gradually as you read
-                        </template>
-                    </BaseContentTitle>
-                    <div v-if="stories.length" class="flex flex-col gap-4 md:h-[640px] md:flex-row md:gap-6">
-                        <!-- Left: independently scrollable story list -->
-                        <div class="relative w-full md:w-1/2">
-                            <div ref="scrollEl" class="md:h-full md:overflow-y-auto md:pr-2 scrollbar-thin">
-                                <div class="flex flex-col gap-4">
-                                    <BaseStoryCard
-                                        v-for="story in stories"
-                                        :key="story.id"
-                                        :story
-                                        :selectable="true"
-                                        :active="activeStory?.id === story.id"
-                                        @select="handleSelectStory"
-                                    />
+                <div class="mx-auto flex w-full max-w-[1018px] flex-col gap-[14px]">
+                    <div class="flex flex-wrap items-end justify-between gap-4">
+                        <div class="max-w-[550px] min-w-0">
+                            <h2 class="flex h-10 items-center text-[26px] font-bold uppercase leading-[33px] text-white">
+                                Featured Worlds
+                            </h2>
+                            <p class="font-normal leading-[26px] text-[#b6b6b6] text-[16px]">
+                                Curated story worlds built for choice, consequence, and return.
+                            </p>
+                        </div>
+                        <Link
+                            :href="storiesIndex().url"
+                            class="inline-block w-[98px] shrink-0 whitespace-nowrap text-right text-[14px] leading-[33px] text-primary hover:underline font-normal"
+                        >
+                            View All ({{ stories.length }})
+                        </Link>
+                    </div>
+
+                    <div v-if="featuredStories.length" class="relative">
+                        <!-- Left arrow -->
+                        <button
+                            class="slider-arrow absolute -left-4 top-1/2 z-10 hidden -translate-y-1/2 md:flex"
+                            @click="scrollSlider(featuredSliderEl, -214)"
+                            aria-label="Scroll left"
+                        >
+                            <span class="slider-arrow-icon rotate-180">&#8250;</span>
+                        </button>
+
+                        <div ref="featuredSliderEl" class="story-slider flex gap-[10px] overflow-x-auto pb-2 md:ml-[17px]">
+                            <HomeWorldCard
+                                v-for="story in featuredStories"
+                                :key="story.id"
+                                :story="story"
+                                class="shrink-0"
+                            />
+                        </div>
+
+                        <!-- Right arrow -->
+                        <button
+                            class="slider-arrow absolute -right-4 top-1/2 z-10 hidden -translate-y-1/2 md:flex"
+                            @click="scrollSlider(featuredSliderEl, 214)"
+                            aria-label="Scroll right"
+                        >
+                            <span class="slider-arrow-icon">&#8250;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Xen Banner -->
+        <XenBanner />
+
+        <!-- Explore by Mood -->
+        <ExploreByMood />
+
+        <!-- New Stories -->
+        <section class="py-14 md:py-[60px]">
+            <div class="container">
+                <div class="mx-auto flex w-full max-w-[1018px] flex-col gap-[14px]">
+                    <div class="flex flex-wrap items-end justify-between gap-4">
+                        <div class="max-w-[550px] min-w-0">
+                            <h2 class="flex h-10 items-center text-[26px] font-bold uppercase leading-[33px] text-white">
+                                New Stories
+                            </h2>
+                            <p class="font-normal leading-[26px] text-[#b6b6b6] text-[16px]">
+                                New branches, hidden paths, and fresh story worlds.
+                            </p>
+                        </div>
+                        <Link
+                            :href="storiesIndex().url"
+                            class="inline-block w-[98px] shrink-0 whitespace-nowrap text-right text-[14px] leading-[33px] text-primary hover:underline font-medium"
+                        >
+                            View All ({{ stories.length }})
+                        </Link>
+                    </div>
+
+                    <!-- 3-column horizontal story cards with image + tags -->
+                    <div v-if="newStories.length" class="relative">
+                        <button
+                            class="slider-arrow absolute -left-4 top-1/2 z-10 hidden -translate-y-1/2 md:flex"
+                            @click="scrollSlider(newStoriesSliderEl, -460)"
+                            aria-label="Scroll left"
+                        >
+                            <span class="slider-arrow-icon rotate-180">&#8250;</span>
+                        </button>
+
+                        <div
+                            ref="newStoriesSliderEl"
+                            class="story-slider flex gap-[10px] overflow-x-auto pb-2 md:ml-[17px]"
+                        >
+                            <Link
+                                v-for="story in newStories"
+                                :key="story.id"
+                                :href="storyShow(story.slug).url"
+                                class="new-story-card flex w-[450px] shrink-0 flex-col gap-[10px]"
+                            >
+                                <!-- Story image (Figma: p-[4px] outer, h-[262] inner) -->
+                                <div class="rounded-[8px] border border-[#373737] bg-[#262626] p-1">
+                                    <div class="relative h-[262px] w-full overflow-hidden rounded-[8px]">
+                                        <img
+                                            v-if="story.cover"
+                                            :src="story.cover"
+                                            :alt="story.title"
+                                            class="h-full w-full object-cover"
+                                        />
+                                        <div
+                                            v-else
+                                            class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900"
+                                        >
+                                            <span class="text-5xl font-bold text-primary/50">{{ story.title?.charAt(0)?.toUpperCase() }}</span>
+                                        </div>
+                                        <div class="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-[#262626] to-transparent" />
+                                    </div>
                                 </div>
-                            </div>
-                            <!-- Top shadow — fades in as you scroll down -->
-                            <div
-                                class="pointer-events-none absolute top-0 right-0 left-0 hidden h-10 bg-gradient-to-b from-gray-950 to-transparent transition-opacity duration-200 md:block"
-                                :style="{ opacity: topShadow }"
-                            />
-                            <!-- Bottom shadow — fades in when there's more to scroll -->
-                            <div
-                                class="pointer-events-none absolute right-0 bottom-0 left-0 hidden h-14 bg-gradient-to-t from-gray-950 to-transparent transition-opacity duration-200 md:block"
-                                :style="{ opacity: bottomShadow }"
-                            />
+                                <!-- Title + tags -->
+                                <div class="flex w-[430px] flex-col gap-[3px] px-px">
+                                    <p class="text-[18px] font-semibold leading-normal text-white">{{ story.title }}</p>
+                                    <div class="flex flex-wrap items-center gap-[4px] text-[15px] leading-normal text-[#8f8f8f]">
+                                        <template v-if="story.category">
+                                            <span class="size-[6px] shrink-0 rounded-full bg-[#8f8f8f]" />
+                                            <span>{{ story.category.title }}</span>
+                                        </template>
+                                        <template v-if="story.rating?.label">
+                                            <span class="size-[6px] shrink-0 rounded-full bg-[#8f8f8f]" />
+                                            <span>{{ story.rating.label }}</span>
+                                        </template>
+                                        <template v-if="story.status?.label">
+                                            <span class="size-[6px] shrink-0 rounded-full bg-[#8f8f8f]" />
+                                            <span>{{ story.status.label }}</span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </Link>
                         </div>
-                        <!-- Right: sticky detail panel for selected story -->
-                        <div class="hidden w-1/2 overflow-hidden md:block">
-                            <Transition name="fade" mode="out-in">
-                                <BaseStoryCard
-                                    v-if="activeStory"
-                                    :key="activeStory.id"
-                                    :story="activeStory"
-                                    type="column"
-                                />
-                            </Transition>
-                        </div>
+
+                        <button
+                            class="slider-arrow absolute -right-4 top-1/2 z-10 hidden -translate-y-1/2 md:flex"
+                            @click="scrollSlider(newStoriesSliderEl, 460)"
+                            aria-label="Scroll right"
+                        >
+                            <span class="slider-arrow-icon">&#8250;</span>
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="py-10 md:py-18">
+        <!-- Coming Soon -->
+        <section v-if="comingSoonStories.length" class="py-14 md:py-[60px]">
             <div class="container">
-                <div class="flex flex-col gap-8 md:gap-12">
-                    <BaseContentTitle title="Creators">
-                        <template #description>
-                            Meet the minds behind the worlds you love and explore the worlds they are actively
-                            <span class="text-primary">bringing to life</span>
-                        </template>
-                    </BaseContentTitle>
-                    <div class="flex flex-col gap-6">
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-                            <BaseCreatorCard v-for="creator in creators" :key="creator.username" :creator />
+                <div class="mx-auto flex w-full max-w-[1018px] flex-col gap-[14px]">
+                    <div class="flex flex-wrap items-end justify-between gap-4">
+                        <div class="max-w-[550px] min-w-0">
+                            <h2 class="flex h-10 items-center text-[26px] font-bold uppercase leading-[33px] text-white">
+                                Coming Soon
+                            </h2>
+                            <p class="font-normal leading-[26px] text-[#b6b6b6] text-[16px]">
+                                New worlds are coming soon.
+                            </p>
                         </div>
-                        <div class="mx-auto w-full sm:w-auto">
-                            <BaseButton class="w-full text-lg sm:w-64" severity="transparent"> View All ({{ creators.length }}) </BaseButton>
+                        <Link
+                            :href="storiesIndex().url"
+                            class="inline-block w-[98px] shrink-0 whitespace-nowrap text-right text-[14px] leading-[33px] text-primary hover:underline font-normal"
+                        >
+                            View All ({{ comingSoonStories.length }})
+                        </Link>
+                    </div>
+
+                    <div class="relative">
+                        <button
+                            class="slider-arrow absolute -left-4 top-1/2 z-10 hidden -translate-y-1/2 md:flex"
+                            @click="scrollSlider(comingSoonSliderEl, -214)"
+                            aria-label="Scroll left"
+                        >
+                            <span class="slider-arrow-icon rotate-180">&#8250;</span>
+                        </button>
+
+                        <div
+                            ref="comingSoonSliderEl"
+                            class="story-slider flex gap-[10px] overflow-x-auto pb-2 md:ml-[17px]"
+                        >
+                            <HomeWorldCard
+                                v-for="story in comingSoonStories"
+                                :key="story.id"
+                                :story="story"
+                                :show-title="false"
+                                :show-button="false"
+                                class="shrink-0"
+                            />
                         </div>
+
+                        <button
+                            class="slider-arrow absolute -right-4 top-1/2 z-10 hidden -translate-y-1/2 md:flex"
+                            @click="scrollSlider(comingSoonSliderEl, 214)"
+                            aria-label="Scroll right"
+                        >
+                            <span class="slider-arrow-icon">&#8250;</span>
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="py-10 md:py-18">
+        <!-- FAQ -->
+        <div class="py-14 md:py-[60px]">
             <div class="container">
-                <CommunitySignup />
-            </div>
-        </div>
-
-        <div class="pt-10 pb-10 md:pt-18 md:pb-16">
-            <div class="container">
-                <FrequentlyAskedQuestion />
+                <div class="mx-auto w-full max-w-[1018px]">
+                    <FrequentlyAskedQuestion />
+                </div>
             </div>
         </div>
     </HomeLayout>
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.2s ease;
+.story-slider {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
+.story-slider::-webkit-scrollbar {
+    display: none;
 }
 
-.scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
+.slider-arrow {
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: background 0.2s;
 }
-.scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-}
-.scrollbar-thin::-webkit-scrollbar-thumb {
+.slider-arrow:hover {
     background: rgba(255, 255, 255, 0.15);
-    border-radius: 2px;
 }
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+.slider-arrow-icon {
+    font-size: 22px;
+    line-height: 1;
+    color: white;
+}
+
+.new-story-card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+.new-story-card:hover {
+    opacity: 0.85;
 }
 </style>
