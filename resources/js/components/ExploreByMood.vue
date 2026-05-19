@@ -236,6 +236,7 @@ import spiralImg from '@/assets/mood/Spiral.svg';
 
 /* Figma mood tiles: default = calm tile + faint icon ring; hover = border + glow (6320-267) */
 .mood-card {
+    background-color: #000;
     border: 1px solid transparent;
     box-shadow: none;
     transition:
