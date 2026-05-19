@@ -12,7 +12,7 @@ import ContinueStories from '@/components/ContinueStories.vue';
 import HomeLayout from '@/layouts/HomeLayout.vue';
 import { GameInterface, StoryInterface } from '@/types';
 
-const props = withDefaults(
+withDefaults(
     defineProps<{
         featuredStory?: StoryInterface | null;
         lastGame?: GameInterface | null;
@@ -45,7 +45,7 @@ const props = withDefaults(
         <XenBanner />
 
         <!-- Explore by Mood -->
-        <ExploreByMood />
+        <ExploreByMood :story-count="stories.length" />
 
         <!-- New Stories -->
         <NewStoriesBanners :story-count="stories.length" />
