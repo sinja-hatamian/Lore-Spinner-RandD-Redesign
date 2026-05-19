@@ -8,30 +8,30 @@ import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <header class="home-header-bar relative z-20">
-        <div class="relative container py-3 md:py-4">
+    <header class="home-header-bar relative z-20 flex min-h-[91px] items-center overflow-visible">
+        <div class="relative container w-full overflow-visible py-0">
             <div
-                class="container-content grid min-h-[7.5rem] grid-cols-[auto_1fr_auto] items-center gap-x-6 gap-y-3 md:min-h-[7.75rem] md:gap-x-12 md:gap-y-0 lg:gap-x-16"
+                class="container-content grid h-[75px] grid-cols-[auto_1fr_auto] grid-rows-1 items-center gap-x-4 gap-y-3 overflow-visible md:gap-x-[50px] md:gap-y-0"
             >
                 <Link
                     :href="index().url"
-                    class="logo-link shrink-0 justify-self-start pr-1 ring-offset-2 ring-offset-black outline-none focus-visible:ring-2 focus-visible:ring-[#00C6DE] md:pr-2"
+                    class="logo-link shrink-0 justify-self-start pr-1 ring-offset-2 ring-offset-black outline-none focus-visible:ring-2 focus-visible:ring-[#00C6DE] md:pr-0"
                 >
                     <img
                         :src="mainLogo"
                         alt="LoreSpinner"
                         class="brand-logo select-none"
-                        width="530"
-                        height="300"
+                        width="296"
+                        height="58"
                         decoding="async"
                     />
                 </Link>
 
-                <div class="hidden min-w-0 items-center justify-center gap-6 justify-self-center md:flex lg:gap-7">
+                <div class="hidden min-w-0 items-center justify-center gap-0 justify-self-center md:flex">
                     <HomeHeaderMenu />
                     <Link
                         :href="storiesIndex().url"
-                        class="featured-worlds-btn inline-flex h-9 shrink-0 items-center justify-center rounded-full px-5 text-[15px] font-normal whitespace-nowrap"
+                        class="featured-worlds-btn inline-flex h-10 shrink-0 items-center justify-center rounded-full px-5 text-[15px] font-normal whitespace-nowrap"
                     >
                         Featured worlds
                     </Link>
@@ -53,31 +53,31 @@ import { Link } from '@inertiajs/vue3';
     -webkit-backdrop-filter: blur(6px);
 }
 
-/* 6rem lockup on md+; drop max-width caps so the asset isn’t letterboxed smaller than the box */
+/*
+ * Toolbar row stays 75px (Figma). Logo asset was authored ~45px tall in frame;
+ * at that size it looked undersized next to nav (16px type + controls). Use ~58px
+ * height (~1.29×) so the lockup matches visual weight; width follows aspect ratio.
+ */
 .brand-logo {
     display: block;
     width: auto;
-    max-width: 100%;
-    height: clamp(3.75rem, 10vw, 6rem);
+    max-width: min(100%, 300px);
+    height: clamp(2.25rem, 7.5vw, 3.625rem);
     object-fit: contain;
     object-position: left center;
 }
 
 @media (min-width: 768px) {
     .brand-logo {
-        height: 6rem;
+        height: 58px;
+        max-width: min(100%, 300px);
     }
 }
 
 .logo-link {
     display: inline-flex;
     align-items: center;
-}
-
-@media (min-width: 768px) {
-    .logo-link {
-        min-height: 6rem;
-    }
+    align-self: center;
 }
 
 .featured-worlds-btn {

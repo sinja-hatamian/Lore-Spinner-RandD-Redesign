@@ -65,7 +65,7 @@ const moodItemClass = (slug: string): string =>
 
 <template>
     <nav aria-label="Primary">
-        <ul class="flex items-center gap-1 md:gap-2">
+        <ul class="flex items-center gap-1 md:gap-0">
             <li>
                 <Link :href="index().url" :class="navClass(isHomeActive)">
                     <span class="relative z-[1]">Home</span>
