@@ -6,6 +6,12 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { ChevronRight, LucideUpload, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
+// inheritAttrs must be false so we can manually forward $attrs (class / style)
+// to the correct root element. Without this, Vue silently drops attrs on
+// fragment-root components (Teleport + button), causing responsive classes
+// like "hidden md:block" to have no effect and both avatar instances to show.
+defineOptions({ inheritAttrs: false });
+
 withDefaults(
     defineProps<{
         compact?: boolean;
@@ -25,8 +31,9 @@ const profileDrawerVisibility = ref(false);
 <template>
     <template v-if="auth === null">
         <Link
+            v-bind="$attrs"
             :href="login.create().url"
-            class="flex h-10 items-center justify-center rounded-full border border-primary/70 bg-transparent px-4 text-sm font-medium whitespace-nowrap text-[#c8ced1] transition-colors hover:border-primary hover:text-white"
+            class="flex h-10 items-center justify-center rounded-full border border-primary/70 bg-transparent px-4 text-sm font-medium leading-none whitespace-nowrap text-[#c8ced1] transition-colors hover:border-primary hover:text-white"
         >
             Login/Sign Up
         </Link>
@@ -125,7 +132,7 @@ const profileDrawerVisibility = ref(false);
             </PrimeDrawer>
         </Teleport>
 
-        <button @click="() => (profileDrawerVisibility = !profileDrawerVisibility)">
+        <button v-bind="$attrs" @click="() => (profileDrawerVisibility = !profileDrawerVisibility)">
             <img
                 :src="auth.avatar"
                 alt=""
