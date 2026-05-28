@@ -17,7 +17,7 @@ const profileDrawerVisibility = ref(false);
     <template v-if="auth === null">
         <Link
             :href="login.create().url"
-            class="flex h-10 items-center justify-center rounded-full border border-[#00C6DE]/70 bg-transparent px-4 text-sm font-medium text-[#c8ced1] transition-colors hover:border-[#00C6DE] hover:text-white"
+            class="flex h-10 items-center justify-center rounded-full border border-primary/70 bg-transparent px-4 text-sm font-medium text-[#c8ced1] transition-colors hover:border-primary hover:text-white"
         >
             Login/Sign Up
         </Link>
@@ -120,7 +120,7 @@ const profileDrawerVisibility = ref(false);
             <img
                 :src="auth.avatar"
                 alt=""
-                class="size-[45px] cursor-pointer rounded-full border-2 border-[#00C6DE] outline-2 outline-transparent transition hover:brightness-110"
+                class="size-[45px] cursor-pointer rounded-full border-2 border-primary outline-2 outline-transparent transition hover:brightness-110"
             />
         </button>
     </template>
