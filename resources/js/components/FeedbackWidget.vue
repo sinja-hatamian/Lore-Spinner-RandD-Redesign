@@ -105,6 +105,6 @@ const submit = () => {
 .feedback-slide-enter-from,
 .feedback-slide-leave-to {
     opacity: 0;
-    transform: translateY(16px) scale(0.95);
+    transform: translateY(1rem) scale(0.95);
 }
 </style>
